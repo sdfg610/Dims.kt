@@ -2,8 +2,17 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '2.0.21'
 }
 
-group = 'org.sdfg610'
+group = 'org.sdfg610.gqed'
 version = '1.0-SNAPSHOT'
+
+compileJava {
+    sourceCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_22
+}
+
+compileKotlin {
+    version = "22"
+}
 
 repositories {
     mavenCentral()
