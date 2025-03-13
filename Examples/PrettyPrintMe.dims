@@ -1,0 +1,8 @@
+// Try pretty-printing this program using the Dims language processor
+
+bool b := 1 != 2; if (b) then print -10; endif
+int i := 0;while (!(10 < i)) do  print i;
+i := i + 1; if (b) then
+print true;
+else print false; print 42; endif
+endwhile
