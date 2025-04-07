@@ -107,7 +107,7 @@ Stmt<out Stmt stmt> =       (. stmt = Skip.INSTANCE; .)
 
 Declaration<out Stmt stmt> =
     Type<out Type type>
-    IDENT                      (. Var var = new Var(t.val); stmt = new Declaration(type, var); .)
+    IDENT                      (. String var = t.val; stmt = new Declaration(type, var); .)
     [ ":=" Expr<out Expr expr> (. stmt = new Comp(stmt, new Assign(var, expr));            .)
     ]
     ';'
@@ -115,7 +115,7 @@ Declaration<out Stmt stmt> =
 
 
 Assignment<out Stmt stmt> =
-    IDENT                 (. Var var = new Var(t.val); .)
+    IDENT                 (. String var = t.val; .)
     ":="
     Expr<out Expr expr>  (. stmt = new Assign(var, expr); .)
     ';'                           
@@ -187,7 +187,7 @@ NotExpr<out Expr expr>        (. ArrayList<Character> unaries = new ArrayList();
 .
 
 Term<out Expr expr>           (. expr = null; .)
-    = IDENT                   (. expr = new Var(t.val);  .)
+    = IDENT                   (. expr = new Ref(t.val);  .)
     | NUM                     (. expr = new NumV(Integer.parseInt(t.val));  .)
     | "true"                  (. expr = new BoolV(true);  .)
     | "false"                 (. expr = new BoolV(false); .)

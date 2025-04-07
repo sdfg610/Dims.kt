@@ -171,7 +171,7 @@ public class Parser {
 		Stmt  stmt;
 		Type type = Type();
 		Expect(1);
-		Var var = new Var(t.val); stmt = new Declaration(type, var); 
+		String var = t.val; stmt = new Declaration(type, var); 
 		if (la.kind == 3) {
 			Get();
 			Expr expr = Expr();
@@ -184,7 +184,7 @@ public class Parser {
 	Stmt  Assignment() {
 		Stmt  stmt;
 		Expect(1);
-		Var var = new Var(t.val); 
+		String var = t.val; 
 		Expect(3);
 		Expr expr = Expr();
 		stmt = new Assign(var, expr); 
@@ -336,7 +336,7 @@ public class Parser {
 		expr = null; 
 		if (la.kind == 1) {
 			Get();
-			expr = new Var(t.val);  
+			expr = new Ref(t.val);  
 		} else if (la.kind == 2) {
 			Get();
 			expr = new NumV(Integer.parseInt(t.val));  

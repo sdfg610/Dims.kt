@@ -6,12 +6,12 @@ group = 'org.sdfg610.dims'
 version = '1.0-SNAPSHOT'
 
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_22
-    targetCompatibility = JavaVersion.VERSION_22
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
 }
 
 compileKotlin {
-    version = "22"
+    version = "21"
 }
 
 repositories {

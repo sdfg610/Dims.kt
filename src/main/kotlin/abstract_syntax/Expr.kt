@@ -8,11 +8,11 @@ class UnaryOp(var op: UnaryOperators, var expr: Expr) : Expr
 class BinaryOp(var op: BinaryOperators, var exprLeft: Expr, var exprRight: Expr) : Expr
 
 
-class Var(var name: String) : Expr
+class Ref(var name: Var) : Expr
 
 class BoolV(var value: Boolean) : Expr
 
-class NumV(var value: Int) : Expr
+class NumV(var value: Num) : Expr
 
 
 enum class UnaryOperators {

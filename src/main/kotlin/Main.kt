@@ -11,10 +11,9 @@ fun main(args: Array<String>) {
     val pretty: Boolean = args.getOrNull(1).equals("--pretty")
 
     if (fileName != null) {
-        val scanner: Scanner = Scanner(fileName)
-        val parser: Parser = Parser(scanner)
-
         try {
+            val parser = Parser(Scanner(fileName))
+
             parser.Parse()
             val program: Stmt = parser.mainNode
             if (parser.hasErrors()) {

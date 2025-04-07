@@ -8,8 +8,8 @@ class PrettyPrinter {
             when(stmt) {
                 null, Skip     -> ""
                 is Comp        -> printStmt(stmt.stmt1, depth) + "\n" + printStmt(stmt.stmt2, depth)
-                is Declaration -> indent(depth) + printType(stmt.type) + " " + printExpr(stmt.identifier) + ";"
-                is Assign      -> indent(depth) + printExpr(stmt.identifier) + " := " + printExpr(stmt.value) + ";"
+                is Declaration -> indent(depth) + printType(stmt.type) + " " + stmt.identifier + ";"
+                is Assign      -> indent(depth) + stmt.identifier + " := " + printExpr(stmt.value) + ";"
                 is Print       -> indent(depth) + "print " + printExpr(stmt.value) + ";"
                 is If          -> {
                     indent(depth) + "if (" + printExpr(stmt.condition) + ") then \n" + printStmt(stmt.thenBody, depth + 1) + "\n" + (
@@ -31,7 +31,7 @@ class PrettyPrinter {
                 null -> ""
                 is UnaryOp -> unaryOpString(expr.op) + surround(expr.expr)
                 is BinaryOp -> surround(expr.exprLeft) + binaryOpString(expr.op) + surround(expr.exprRight)
-                is Var -> expr.name
+                is Ref -> expr.name
                 is BoolV -> expr.value.toString()
                 is NumV -> expr.value.toString()
             }
