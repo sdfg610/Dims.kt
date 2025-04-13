@@ -1,7 +1,8 @@
 package org.sdfg610.dims
 
-import org.sdfg610.dims.abstract_syntax.*
 import org.sdfg610.dims.pretty_printing.PrettyPrinter
+import org.sdfg610.dims.static_analysis.AssignAndTypeChecker
+import org.sdfg610.dims.static_analysis.EnvAT
 import syntactic_analysis.*
 
 
@@ -10,26 +11,36 @@ fun main(args: Array<String>) {
     val fileName: String? = args.getOrNull(0)
     val prettyPrint: Boolean = args.contains("--pretty")
 
-    if (fileName != null) {
+    if (fileName == null)
+        println("Usage: Dims [file-name] [--pretty]")
+    else {
         try {
             val parser = Parser(Scanner(fileName))
-
             parser.Parse()
-            val program: Stmt = parser.mainNode
+
             if (parser.hasErrors())
-                println("Errors during parsing!")
+                println("Errors during syntactic analysis!")
             else if (prettyPrint)
-                println(PrettyPrinter.printStmt(program))
+                println(PrettyPrinter.printStmt(parser.mainNode!!))
             else {
-                println("Semantic analysis and interpretation will follow later")
-                // TODO: Semantic analysis and interpretation.
+                val program = parser.mainNode!!
+                val atChecker = AssignAndTypeChecker(program, EnvAT())
+
+                if (atChecker.hasErrors) {
+                    for (err in atChecker.errors)
+                        println(err)
+                    println("Errors during static analysis!")
+                }
+                else {
+                    println("Running program!")
+
+                    println("Program terminated!")
+                }
             }
         }
         catch (ex: Exception) {
-            println("Error during parsing:")
-            println(ex.toString())
+            println("An exception was thrown:")
+            ex.printStackTrace()
         }
     }
-    else
-        println("Usage: Dims [file-name] [--pretty] [--interpret]")
 }

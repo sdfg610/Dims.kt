@@ -47,7 +47,7 @@ class PrettyPrinter {
         private fun indent(depth: Int)
         = "    ".repeat(depth)
 
-        private fun binaryOpString(op: BinaryOperators): String =
+        fun binaryOpString(op: BinaryOperators): String =
             when (op) {
                 BinaryOperators.ADD -> " + "
                 BinaryOperators.SUB -> " - "
@@ -57,7 +57,7 @@ class PrettyPrinter {
                 BinaryOperators.OR -> " || "
             }
 
-        private fun unaryOpString(op: UnaryOperators): String =
+        fun unaryOpString(op: UnaryOperators): String =
             when (op) {
                 UnaryOperators.NOT -> "!"
                 UnaryOperators.NEG -> "-"
