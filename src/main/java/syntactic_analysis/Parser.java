@@ -47,15 +47,15 @@ public class Parser {
         return result;
     }
 
-    private Expr applyUnaries(ArrayList<Character> unariesReversed, Expr base)
+    private Expr applyUnaries(ArrayList<Character> unariesReversed, Expr base, int lineNumber)
     {
         Expr result = base;
         int index = 0;
         while (index < unariesReversed.size()){
             char ch = unariesReversed.get(index);
             result = switch (ch) {
-                case '!' -> new UnaryOp(UnaryOperators.NOT, result);
-                case '-' -> new UnaryOp(UnaryOperators.NEG, result);
+                case '!' -> new UnaryOp(UnaryOperators.NOT, result, lineNumber);
+                case '-' -> new UnaryOp(UnaryOperators.NEG, result, lineNumber);
                 default -> throw new RuntimeException("Unknown unary operator: " + ch);
             };
             index += 1;
@@ -63,11 +63,11 @@ public class Parser {
         return result;
     }
 
-    private Expr makeEqOp(String op, Expr left, Expr right)
+    private Expr makeEqOp(String op, Expr left, Expr right, int lineNumber)
     {
         return switch (op) {
-            case "=" ->  new BinaryOp(BinaryOperators.EQ, left, right);
-            case "!=" -> new UnaryOp(UnaryOperators.NOT, new BinaryOp(BinaryOperators.EQ, left, right));
+            case "=" ->  new BinaryOp(BinaryOperators.EQ, left, right, lineNumber);
+            case "!=" -> new UnaryOp(UnaryOperators.NOT, new BinaryOp(BinaryOperators.EQ, left, right, lineNumber), lineNumber);
             default -> throw new RuntimeException("Unknown equality operator: " + op);
         };
     }
@@ -171,11 +171,12 @@ public class Parser {
 		Stmt  stmt;
 		Type type = Type();
 		Expect(1);
-		String var = t.val; stmt = new Declaration(type, var); 
+		String var = t.val; stmt = new Declaration(type, var, t.line); 
 		if (la.kind == 3) {
 			Get();
+			int lineNumber = t.line; 
 			Expr expr = Expr();
-			stmt = new Comp(stmt, new Assign(var, expr));            
+			stmt = new Comp(stmt, new Assign(var, expr, lineNumber));                       
 		}
 		Expect(4);
 		return stmt;
@@ -184,10 +185,10 @@ public class Parser {
 	Stmt  Assignment() {
 		Stmt  stmt;
 		Expect(1);
-		String var = t.val; 
+		String var = t.val; int lineNumber = t.line; 
 		Expect(3);
 		Expr expr = Expr();
-		stmt = new Assign(var, expr); 
+		stmt = new Assign(var, expr, lineNumber); 
 		Expect(4);
 		return stmt;
 	}
@@ -195,8 +196,9 @@ public class Parser {
 	Stmt  Print() {
 		Stmt  stmt;
 		Expect(5);
+		int lineNumber = t.line; 
 		Expr expr = Expr();
-		stmt = new Print(expr); 
+		stmt = new Print(expr, lineNumber); 
 		Expect(4);
 		return stmt;
 	}
@@ -205,6 +207,7 @@ public class Parser {
 		Stmt  stmt;
 		Stmt stmtElse = Skip.INSTANCE; 
 		Expect(6);
+		int lineNumber = t.line; 
 		Expect(7);
 		Expr cond = Expr();
 		Expect(8);
@@ -215,20 +218,21 @@ public class Parser {
 			stmtElse = Stmts();
 		}
 		Expect(11);
-		stmt = new If(cond, stmtThen, stmtElse); 
+		stmt = new If(cond, stmtThen, stmtElse, lineNumber); 
 		return stmt;
 	}
 
 	Stmt  While() {
 		Stmt  stmt;
 		Expect(12);
+		int lineNumber = t.line; 
 		Expect(7);
 		Expr cond = Expr();
 		Expect(8);
 		Expect(13);
 		Stmt body = Stmts();
 		Expect(14);
-		stmt = new While(cond, body); 
+		stmt = new While(cond, body, lineNumber); 
 		return stmt;
 	}
 
@@ -250,26 +254,27 @@ public class Parser {
 		expr = EqExpr();
 		while (la.kind == 17) {
 			Get();
+			int lineNumber = t.line; 
 			Expr expr2 = EqExpr();
-			expr = new BinaryOp(BinaryOperators.OR, expr, expr2); 
+			expr = new BinaryOp(BinaryOperators.OR, expr, expr2, lineNumber); 
 		}
 		return expr;
 	}
 
 	Expr  EqExpr() {
 		Expr  expr;
-		String op = null; 
+		String op = null; int lineNumber = -1; 
 		expr = RelExpr();
 		while (la.kind == 18 || la.kind == 19) {
 			if (la.kind == 18) {
 				Get();
-				op = "="; 
+				op = "="; lineNumber = t.line; 
 			} else {
 				Get();
-				op = "!="; 
+				op = "!="; lineNumber = t.line; 
 			}
 			Expr expr2 = RelExpr();
-			expr = makeEqOp(op, expr, expr2); 
+			expr = makeEqOp(op, expr, expr2, lineNumber); 
 		}
 		return expr;
 	}
@@ -279,26 +284,27 @@ public class Parser {
 		expr = PlusExpr();
 		while (la.kind == 20) {
 			Get();
+			int lineNumber = t.line; 
 			Expr expr2 = PlusExpr();
-			expr = new BinaryOp(BinaryOperators.LT, expr, expr2); 
+			expr = new BinaryOp(BinaryOperators.LT, expr, expr2, lineNumber); 
 		}
 		return expr;
 	}
 
 	Expr  PlusExpr() {
 		Expr  expr;
-		BinaryOperators op = BinaryOperators.ADD; 
+		BinaryOperators op = BinaryOperators.ADD; int lineNumber = -1; 
 		expr = MultExpr();
 		while (la.kind == 21 || la.kind == 22) {
 			if (la.kind == 21) {
 				Get();
-				op = BinaryOperators.ADD; 
+				op = BinaryOperators.ADD; lineNumber = t.line; 
 			} else {
 				Get();
-				op = BinaryOperators.SUB; 
+				op = BinaryOperators.SUB; lineNumber = t.line; 
 			}
 			Expr expr2 = MultExpr();
-			expr = new BinaryOp(op, expr, expr2); 
+			expr = new BinaryOp(op, expr, expr2, lineNumber); 
 		}
 		return expr;
 	}
@@ -308,26 +314,27 @@ public class Parser {
 		expr = NotExpr();
 		while (la.kind == 23) {
 			Get();
+			int lineNumber = t.line; 
 			Expr expr2 = NotExpr();
-			expr = new BinaryOp(BinaryOperators.MUL, expr, expr2); 
+			expr = new BinaryOp(BinaryOperators.MUL, expr, expr2, lineNumber); 
 		}
 		return expr;
 	}
 
 	Expr  NotExpr() {
 		Expr  expr;
-		ArrayList<Character> unaries = new ArrayList(); 
+		ArrayList<Character> unaries = new ArrayList(); int lineNumber = -1; 
 		while (la.kind == 22 || la.kind == 24) {
 			if (la.kind == 24) {
 				Get();
-				unaries.add('!'); 
+				unaries.add('!'); lineNumber = t.line; 
 			} else {
 				Get();
-				unaries.add('-'); 
+				unaries.add('-'); lineNumber = t.line; 
 			}
 		}
 		Expr expr2 = Term();
-		expr = applyUnaries(new ArrayList<>(unaries.reversed()), expr2);  
+		expr = applyUnaries(new ArrayList<>(unaries.reversed()), expr2, lineNumber);  
 		return expr;
 	}
 
@@ -336,16 +343,16 @@ public class Parser {
 		expr = null; 
 		if (la.kind == 1) {
 			Get();
-			expr = new Ref(t.val);  
+			expr = new Ref(t.val, t.line);  
 		} else if (la.kind == 2) {
 			Get();
-			expr = new NumV(Integer.parseInt(t.val));  
+			expr = new NumV(Integer.parseInt(t.val), t.line);  
 		} else if (la.kind == 25) {
 			Get();
-			expr = new BoolV(true);  
+			expr = new BoolV(true, t.line);  
 		} else if (la.kind == 26) {
 			Get();
-			expr = new BoolV(false); 
+			expr = new BoolV(false, t.line); 
 		} else if (la.kind == 7) {
 			Get();
 			expr = Expr();

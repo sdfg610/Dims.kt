@@ -42,15 +42,15 @@ COMPILER Program
         return result;
     }
 
-    private Expr applyUnaries(ArrayList<Character> unariesReversed, Expr base)
+    private Expr applyUnaries(ArrayList<Character> unariesReversed, Expr base, int lineNumber)
     {
         Expr result = base;
         int index = 0;
         while (index < unariesReversed.size()){
             char ch = unariesReversed.get(index);
             result = switch (ch) {
-                case '!' -> new UnaryOp(UnaryOperators.NOT, result);
-                case '-' -> new UnaryOp(UnaryOperators.NEG, result);
+                case '!' -> new UnaryOp(UnaryOperators.NOT, result, lineNumber);
+                case '-' -> new UnaryOp(UnaryOperators.NEG, result, lineNumber);
                 default -> throw new RuntimeException("Unknown unary operator: " + ch);
             };
             index += 1;
@@ -58,11 +58,11 @@ COMPILER Program
         return result;
     }
 
-    private Expr makeEqOp(String op, Expr left, Expr right)
+    private Expr makeEqOp(String op, Expr left, Expr right, int lineNumber)
     {
         return switch (op) {
-            case "=" ->  new BinaryOp(BinaryOperators.EQ, left, right);
-            case "!=" -> new UnaryOp(UnaryOperators.NOT, new BinaryOp(BinaryOperators.EQ, left, right));
+            case "=" ->  new BinaryOp(BinaryOperators.EQ, left, right, lineNumber);
+            case "!=" -> new UnaryOp(UnaryOperators.NOT, new BinaryOp(BinaryOperators.EQ, left, right, lineNumber), lineNumber);
             default -> throw new RuntimeException("Unknown equality operator: " + op);
         };
     }
@@ -107,36 +107,39 @@ Stmt<out Stmt stmt> =       (. stmt = Skip.INSTANCE; .)
 
 Declaration<out Stmt stmt> =
     Type<out Type type>
-    IDENT                      (. String var = t.val; stmt = new Declaration(type, var); .)
-    [ ":=" Expr<out Expr expr> (. stmt = new Comp(stmt, new Assign(var, expr));            .)
+    IDENT               (. String var = t.val; stmt = new Declaration(type, var, t.line); .)
+    [ ":="              (. int lineNumber = t.line; .)
+    Expr<out Expr expr> (. stmt = new Comp(stmt, new Assign(var, expr, lineNumber));                       .)
     ]
     ';'
 .
 
 
 Assignment<out Stmt stmt> =
-    IDENT                 (. String var = t.val; .)
+    IDENT                 (. String var = t.val; int lineNumber = t.line; .)
     ":="
-    Expr<out Expr expr>  (. stmt = new Assign(var, expr); .)
+    Expr<out Expr expr>  (. stmt = new Assign(var, expr, lineNumber); .)
     ';'                           
 .
 
 Print<out Stmt stmt> =
-    "print"
-    Expr<out Expr expr>  (. stmt = new Print(expr); .)
+    "print"              (. int lineNumber = t.line; .)
+    Expr<out Expr expr>  (. stmt = new Print(expr, lineNumber); .)
     ';'
 .
 
 If<out Stmt stmt> =                  (. Stmt stmtElse = Skip.INSTANCE; .)
-    "if" '(' Expr<out Expr cond> ')'
+    "if"                             (. int lineNumber = t.line; .)
+    '(' Expr<out Expr cond> ')'
     "then" Stmts<out Stmt stmtThen>
     [ "else" Stmts<out stmtElse> ]
-    "endif"                          (. stmt = new If(cond, stmtThen, stmtElse); .)
+    "endif"                          (. stmt = new If(cond, stmtThen, stmtElse, lineNumber); .)
 .
 
 While<out Stmt stmt> =
-    "while" '(' Expr<out Expr cond> ')' "do" Stmts<out Stmt body>
-    "endwhile"                           (. stmt = new While(cond, body); .)
+    "while"                              (. int lineNumber = t.line; .)
+    '(' Expr<out Expr cond> ')' "do" Stmts<out Stmt body>
+    "endwhile"                           (. stmt = new While(cond, body, lineNumber); .)
 .
 
 /*------------------------------------------------------------------------*/
@@ -148,49 +151,52 @@ Type<out Type type>   (. type = null; .)
 /*------------------------------------------------------------------------*/
 Expr<out Expr expr>
     = EqExpr<out expr>
-    { "||" EqExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.OR, expr, expr2); .)
+    { "||"                 (. int lineNumber = t.line; .)
+    EqExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.OR, expr, expr2, lineNumber); .)
     }
 .
 
-EqExpr<out Expr expr>    (. String op = null; .)
+EqExpr<out Expr expr>    (. String op = null; int lineNumber = -1; .)
     = RelExpr<out expr>
-    { ( '='                     (. op = "="; .)
-      | "!="                    (. op = "!="; .)
-      ) RelExpr<out Expr expr2> (. expr = makeEqOp(op, expr, expr2); .)
+    { ( '='                     (. op = "="; lineNumber = t.line; .)
+      | "!="                    (. op = "!="; lineNumber = t.line; .)
+      ) RelExpr<out Expr expr2> (. expr = makeEqOp(op, expr, expr2, lineNumber); .)
     }
 .
 
 RelExpr<out Expr expr>
     = PlusExpr<out expr>
-    { '<' PlusExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.LT, expr, expr2); .)
+    { '<'                        (. int lineNumber = t.line; .)
+        PlusExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.LT, expr, expr2, lineNumber); .)
     }
 .
 
-PlusExpr<out Expr expr>          (. BinaryOperators op = BinaryOperators.ADD; .)
+PlusExpr<out Expr expr>          (. BinaryOperators op = BinaryOperators.ADD; int lineNumber = -1; .)
     = MultExpr<out expr>
-    { ( '+'                      (. op = BinaryOperators.ADD; .)
-      | '-'                      (. op = BinaryOperators.SUB; .)
-      ) MultExpr<out Expr expr2> (. expr = new BinaryOp(op, expr, expr2); .)
+    { ( '+'                      (. op = BinaryOperators.ADD; lineNumber = t.line; .)
+      | '-'                      (. op = BinaryOperators.SUB; lineNumber = t.line; .)
+      ) MultExpr<out Expr expr2> (. expr = new BinaryOp(op, expr, expr2, lineNumber); .)
     }
 .
 
 MultExpr<out Expr expr>
     = NotExpr<out expr>
-    { '*' NotExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.MUL, expr, expr2); .)
+    { '*'                       (. int lineNumber = t.line; .)
+        NotExpr<out Expr expr2> (. expr = new BinaryOp(BinaryOperators.MUL, expr, expr2, lineNumber); .)
     }
 .
 
-NotExpr<out Expr expr>        (. ArrayList<Character> unaries = new ArrayList(); .)
-    = { '!'                   (. unaries.add('!'); .)
-      | '-'                   (. unaries.add('-'); .)
-      } Term<out Expr expr2>   (. expr = applyUnaries(new ArrayList<>(unaries.reversed()), expr2);  .)
+NotExpr<out Expr expr>        (. ArrayList<Character> unaries = new ArrayList(); int lineNumber = -1; .)
+    = { '!'                   (. unaries.add('!'); lineNumber = t.line; .)
+      | '-'                   (. unaries.add('-'); lineNumber = t.line; .)
+      } Term<out Expr expr2>   (. expr = applyUnaries(new ArrayList<>(unaries.reversed()), expr2, lineNumber);  .)
 .
 
 Term<out Expr expr>           (. expr = null; .)
-    = IDENT                   (. expr = new Ref(t.val);  .)
-    | NUM                     (. expr = new NumV(Integer.parseInt(t.val));  .)
-    | "true"                  (. expr = new BoolV(true);  .)
-    | "false"                 (. expr = new BoolV(false); .)
+    = IDENT                   (. expr = new Ref(t.val, t.line);  .)
+    | NUM                     (. expr = new NumV(Integer.parseInt(t.val), t.line);  .)
+    | "true"                  (. expr = new BoolV(true, t.line);  .)
+    | "false"                 (. expr = new BoolV(false, t.line); .)
     | '(' Expr<out expr> ')'
 .
 
