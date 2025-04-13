@@ -1,5 +1,7 @@
 package org.sdfg610.dims
 
+import org.sdfg610.dims.interpretation.EnvV
+import org.sdfg610.dims.interpretation.Interpreter
 import org.sdfg610.dims.pretty_printing.PrettyPrinter
 import org.sdfg610.dims.static_analysis.AssignAndTypeChecker
 import org.sdfg610.dims.static_analysis.EnvAT
@@ -33,7 +35,7 @@ fun main(args: Array<String>) {
                 }
                 else {
                     println("Running program!")
-
+                    Interpreter.evalStmt(program, EnvV())
                     println("Program terminated!")
                 }
             }

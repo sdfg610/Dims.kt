@@ -8,7 +8,7 @@ open class Env<T> (
     private val bindings: MutableMap<Var, T> = HashMap()
 
 
-    fun newScope(): Env<T>
+    fun newScope(): Env<T> // Scopes are exited by simply remembering the parent-scope-reference in the calling code
     = Env(this)
 
     fun bind(variable: Var, value: T) {
