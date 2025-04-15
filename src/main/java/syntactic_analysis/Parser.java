@@ -32,7 +32,7 @@ public class Parser {
     private Stmt toComp(ArrayList<Stmt> stmtsReversed)
     {
         if (stmtsReversed.isEmpty())
-            return null;
+            return Skip.INSTANCE;
 
         Stmt result = stmtsReversed.getFirst();
         int index = 1;

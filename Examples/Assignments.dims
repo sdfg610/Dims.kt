@@ -1,0 +1,60 @@
+int i;
+bool b := true;
+
+print b; // assigned
+
+while (b) do
+    i := 1;
+endwhile
+
+print i; // Unassigned
+
+if (b) then
+    i := 1;
+else
+endif
+
+print i; // Unassigned
+
+if (b) then
+    i := 1;
+else
+endif
+
+print i; // Unassigned
+
+if (b) then
+    int i;
+    i := 1;
+else
+    int i;
+    i := 1;
+endif
+
+print i; // Unassigned
+
+if (b) then
+    i := 1;
+else
+    int i;
+    i := 1;
+endif
+
+print i; // Unassigned
+
+if (b) then
+    int i;
+    i := 1;
+else
+    int i;
+endif
+
+print i; // Unassigned
+
+if (b) then
+    i := 1;
+else
+    i := 1;
+endif
+
+print i; // Assigned

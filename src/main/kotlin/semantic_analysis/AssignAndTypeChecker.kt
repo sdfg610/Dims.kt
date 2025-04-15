@@ -1,12 +1,8 @@
-package org.sdfg610.dims.static_analysis
+package org.sdfg610.dims.semantic_analysis
 
 import org.sdfg610.dims.abstract_syntax.*
-import org.sdfg610.dims.common.Env
 import org.sdfg610.dims.pretty_printing.PrettyPrinter
 
-typealias EnvAT = Env<AT>
-
-data class AT(var isAssigned: Boolean, val type: Type)
 
 class AssignAndTypeChecker {
     val errors: MutableList<String> = mutableListOf()
@@ -57,8 +53,15 @@ class AssignAndTypeChecker {
                 if (exprType != null && exprType !is BoolT)
                     errors.add("Line ${stmt.condition!!.lineNumber}: If statement requires a condition with type 'bool' but got '${PrettyPrinter.printType(exprType)}'.")
 
-                stmtT(stmt.thenBody!!, envAT.newScope()) // The 'then'- and 'else'-bodies gets their own scopes.
-                stmtT(stmt.elseBody!!, envAT.newScope())
+                val envAT1 = envAT.clone()
+                val envAT2 = envAT.clone()
+                stmtT(stmt.thenBody!!, envAT1.newScope()) // The 'then'- and 'else'-bodies gets their own scopes.
+                stmtT(stmt.elseBody!!, envAT2.newScope())
+
+                // Only propagate assignments which are guaranteed to happen in both branches.
+                for (variable in envAT.domain())
+                    envAT.tryGet(variable)!!.isAssigned =
+                        envAT1.tryGet(variable)!!.isAssigned && envAT2.tryGet(variable)!!.isAssigned
             }
 
             is While -> {
@@ -66,7 +69,8 @@ class AssignAndTypeChecker {
                 if (exprType != null && exprType !is BoolT)
                     errors.add("Line ${stmt.condition!!.lineNumber}: While statement requires a condition with type 'bool' but got '${PrettyPrinter.printType(exprType)}'.")
 
-                stmtT(stmt.body!!, envAT.newScope()) // The body gets its own scope.
+                // The body gets its own scope. Also, the scope is cloned since neither assignments nor declarations propagate out of a while-loop.
+                stmtT(stmt.body!!, envAT.clone().newScope())
             }
         }
     }

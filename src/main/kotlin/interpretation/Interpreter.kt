@@ -2,10 +2,6 @@ package org.sdfg610.dims.interpretation
 
 import org.sdfg610.dims.abstract_syntax.*
 import org.sdfg610.dims.abstract_syntax.BoolV
-import org.sdfg610.dims.common.Env
-
-typealias EnvV = Env<Val?>
-
 
 class Interpreter {
     companion object {

@@ -1,12 +1,12 @@
 package org.sdfg610.dims
 
-import org.sdfg610.dims.interpretation.EnvV
-import org.sdfg610.dims.interpretation.Interpreter
+import org.sdfg610.dims.interpretation.*
 import org.sdfg610.dims.pretty_printing.PrettyPrinter
-import org.sdfg610.dims.static_analysis.AssignAndTypeChecker
-import org.sdfg610.dims.static_analysis.EnvAT
+import org.sdfg610.dims.semantic_analysis.*
 import syntactic_analysis.*
 
+
+// TODO: Make error recovery annotations in Dims.ATG for more stable syntax-error-reporting
 
 fun main(args: Array<String>) {
     // NOTE: Example .dims files are available in the "Examples" folder.
@@ -14,7 +14,7 @@ fun main(args: Array<String>) {
     val prettyPrint: Boolean = args.contains("--pretty")
 
     if (fileName == null)
-        println("Usage: Dims [file-name] [--pretty]")
+        println("Usage: Dims file-name [--pretty]")
     else {
         try {
             val parser = Parser(Scanner(fileName))
