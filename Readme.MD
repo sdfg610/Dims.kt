@@ -10,7 +10,7 @@ You can either run the Dims language processor Jar-file from a terminal as shown
 
 `java -jar Dims.jar file-name [--pretty]`
 
-Do note that you have to compile Dims.jar manually (using Gradle) and that this file is not pre-packaged in this repository. To see how to create Dims.jar (using Gradle) through IntelliJ, do refer to steps 7-9 in [this StackOverflow answer](https://stackoverflow.com/a/37102569/2270247).
+In case you want to run Dims from a terminal using the Jar-file (and not as a "run configuration" in InteliJ), then do note that you have to compile Dims.jar manually (using Gradle) and that this file is not pre-packaged in this repository. To see how to create Dims.jar (using Gradle) through IntelliJ, do refer to steps 7-9 in [this StackOverflow answer](https://stackoverflow.com/a/37102569/2270247).
 
 
 ## Syntactic analysis phase
