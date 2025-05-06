@@ -25,3 +25,12 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+tasks.withType(Jar.class).configureEach {
+    manifest {
+        attributes["Main-Class"] = "org.sdfg610.dims.MainKt"
+    }
+    archiveFileName.set("Dims.jar")
+    from { configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
+}
+
