@@ -29,20 +29,20 @@ public class Parser {
         return errors.count > 0;
     }
 
-    private Stmt toComp(ArrayList<Stmt> stmtsReversed)
+    private Stmt toComp(ArrayList<Stmt> stmts)
     {
-        if (stmtsReversed.isEmpty())
+        if (stmts.isEmpty())
             return Skip.INSTANCE;
 
-        Stmt result = stmtsReversed.getFirst();
-        int index = 1;
-        while (index < stmtsReversed.size()){
-            Stmt current = stmtsReversed.get(index);
+        Stmt result = stmts.getLast();
+        int index = stmts.size() - 2;
+        while (index >= 0){
+            Stmt current = stmts.get(index);
             if (current instanceof Comp comp)
                 result = new Comp (comp.getStmt1(), new Comp(comp.getStmt2(), result));
             else
                 result = new Comp(current, result);
-            index += 1;
+            index--;
         }
         return result;
     }
@@ -141,12 +141,12 @@ public class Parser {
 
 	Stmt  Stmts() {
 		Stmt  stmt;
-		ArrayList<Stmt> list = new ArrayList(); 
+		ArrayList<Stmt> list = new ArrayList<>(); 
 		while (StartOf(1)) {
 			Stmt temp = Stmt();
 			list.add(temp); 
 		}
-		stmt = toComp(new ArrayList(list.reversed())); 
+		stmt = toComp(list);
 		return stmt;
 	}
 
